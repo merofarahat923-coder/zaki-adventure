@@ -51,8 +51,8 @@ body.touch #touch{display:block}
 #btnZone{right:env(safe-area-inset-right);bottom:0;width:44%;height:72%}
 body.inmenu #touch{display:none!important}
 #stick{position:absolute;width:calc(112px*var(--bs,1));height:calc(112px*var(--bs,1));transform:translate(-50%,-50%);border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,.04) 68%,rgba(255,255,255,.08));border:1.5px solid rgba(255,255,255,.24);
-  box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:.42;transition:opacity .15s}
+  background:radial-gradient(circle,rgba(20,30,60,.22),rgba(10,16,40,.3) 68%,rgba(255,255,255,.1));border:2px solid rgba(255,255,255,.45);
+  box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:.62;transition:opacity .15s}
 #stick.on{opacity:.9;border-color:rgba(255,255,255,.45)}
 #stick .ch{position:absolute;left:50%;top:50%;width:9px;height:9px;border-top:2.5px solid rgba(255,255,255,.55);border-left:2.5px solid rgba(255,255,255,.55);border-radius:2px;transition:border-color .08s}
 #stick .ch.u{transform:translate(-50%,-50%) translateY(calc(-40px*var(--bs,1))) rotate(45deg)}
@@ -63,8 +63,8 @@ body.inmenu #touch{display:none!important}
 #knob{position:absolute;left:50%;top:50%;width:46%;height:46%;margin:-23% 0 0 -23%;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.6),rgba(255,255,255,.2) 58%,rgba(255,255,255,.12));border:1.5px solid rgba(255,255,255,.55);box-shadow:0 4px 12px rgba(0,0,0,.45)}
 .gbtn{position:absolute;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:translate(-50%,-50%);
-  background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.26),rgba(255,255,255,.07) 64%,rgba(255,255,255,.1));border:1.5px solid rgba(255,255,255,.3);
-  box-shadow:0 4px 14px rgba(0,0,0,.28);color:#fff;transition:transform .07s,background .07s,box-shadow .07s,opacity .07s;opacity:.45}
+  background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.3),rgba(20,30,60,.28) 64%,rgba(10,16,40,.35));border:2px solid rgba(255,255,255,.55);
+  box-shadow:0 4px 14px rgba(0,0,0,.28);color:#fff;transition:transform .07s,background .07s,box-shadow .07s,opacity .07s;opacity:.68}
 .gbtn svg{width:40%;height:40%;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .gbtn span{font:800 9px system-ui,-apple-system,sans-serif;letter-spacing:1px;opacity:.75;margin-top:2px}
 .gbtn.a{width:calc(80px*var(--bs,1));height:calc(80px*var(--bs,1))}
@@ -272,7 +272,7 @@ function bsz(){return (BTN_SIZES[btnSize]||BTN_SIZES[1])[0];}
 function layoutControls(){
   if(!isTouch)return;
   const zr=stickZone.getBoundingClientRect(),br=btnZone.getBoundingClientRect(),b=bsz(),port=document.body.classList.contains('portrait');
-  if(!zr.width||!br.width)return;
+  if(!zr.width||!br.width){if(!document.body.classList.contains('inmenu'))setTimeout(layoutControls,120);return;}
   let ax,ay,bx,by;
   const sl=0;
   stickHome={x:Math.max(80*b,zr.width*0.3)+sl*0.5,y:zr.height-84*b};
@@ -2442,7 +2442,7 @@ function loop(ts){
 window.gameReady=true;
 $('bRotFS').addEventListener('click',()=>{initAudio();try{const el=document.documentElement;const pr=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);const lock=()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}};if(pr&&pr.then)pr.then(lock).catch(()=>{});else lock();}catch(e){}});
 let lastMenuCls=null;
-setInterval(()=>{const m=inMenu()||state==='intro';if(m!==lastMenuCls){lastMenuCls=m;document.body.classList.toggle('inmenu',m);}},100);
+setInterval(()=>{const m=inMenu()||state==='intro';if(m!==lastMenuCls){lastMenuCls=m;document.body.classList.toggle('inmenu',m);if(!m)requestAnimationFrame(layoutControls);}},100);
 requestAnimationFrame(loop);
 </script>
 </body>
