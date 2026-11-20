@@ -767,10 +767,14 @@ function safeSpawn(){
   P.inv=180;
 }
 function placeAtCP(){if(cpTaken&&cpE){P.x=cpE.x+4;P.y=cpE.y+48-P.h;cam=Math.max(0,Math.min(P.x-VW*0.35,L.w*T-VW));}}
-function newGame(w){
+function newGame(w,resume){
   initAudio();score=0;coins=0;lives=3;world=w;cpTaken=false;
-  loadLevel(w);P=newPlayer(0);showIntro();
+  loadLevel(w);P=newPlayer(0);
+  if(resume&&lsGet('lastcp','0')==='1'&&cpE){cpTaken=true;placeAtCP();safeSpawn();}
+  lsSet('last',w);if(!resume)lsSet('lastcp','0');
+  showIntro();
 }
+function lastPlayed(){const v=lsGet('last',null);if(v==null)return -1;const n=+v;return n>=0&&n<=saved?n:-1;}
 function showIntro(){state='intro';stTimer=150;stopMusic();}
 function toTitle(){state='title';menuSel=0;stopMusic();world=0;loadLevel(0);P=newPlayer(0);saved=+lsGet('world',0)||0;}
 function pause(){if(state!=='play')return;state='paused';menuSel=0;stopMusic();sfx('pause');}
@@ -781,7 +785,9 @@ function menuItems(){
   const it=[],ac=[],me=[];const add=(s,f,m)=>{it.push(s);ac.push(f);me.push(m||{});};
   if(state==='title'){
     add(tt('START GAME','ابدأ اللعب'),()=>newGame(0),{ic:'play'});
-    if(saved>0){add(tt('CONTINUE '+LNAMES[saved],'كمّل من ⁦'+LNAMES[saved]+'⁩'),()=>newGame(saved),{ic:'cont'});add(tt('SELECT LEVEL','اختار المرحلة'),()=>{state='select';menuSel=0;},{ic:'grid'});}
+    const lp=lastPlayed();
+    if(lp>=0){const cpx=lsGet('lastcp','0')==='1';add(tt('CONTINUE '+LNAMES[lp],'كمّل من ⁦'+LNAMES[lp]+'⁩'),()=>newGame(lp,true),{ic:'cont',badge:cpx?{t:'text',s:'نقطة الحفظ'}:null});}
+    add(tt('SELECT LEVEL','اختار المرحلة'),()=>{state='select';menuSel=0;},{ic:'grid'});
     add(tt('SHOP','المتجر'),()=>{state='shop';menuSel=skin;},{ic:'bag',badge:{t:'price',n:bank}});
     add(tt('GRAPHICS: RETRO','الجرافيك: حديث'),toggleGfx,{ic:'gfx'});
     if(canInstall())add(tt('INSTALL APP','ثبّت اللعبة'),doInstall,{ic:'down'});
@@ -1011,7 +1017,7 @@ function updPlayer(inp){
     if(c==='~'&&P.y+P.h>ty*T+6){P.star=0;P.inv=0;die('lava');}
   }
   if(P.y>VH+20)die('pit');
-  if(cpE&&!cpTaken&&P.x>cpE.x){cpTaken=true;sfx('cp');addScore(500,cpE.x-8,cpE.y-8);}
+  if(cpE&&!cpTaken&&P.x>cpE.x){cpTaken=true;lsSet('lastcp','1');sfx('cp');addScore(500,cpE.x-8,cpE.y-8);}
   if(goalE&&!goalE.hidden&&ov(P,{x:goalE.x+4,y:-60,w:24,h:goalE.y+goalE.h+60})&&state==='play'){if(L.theme!=='water'){const b=P.y+P.h-goalE.y,pts=b<18?5000:b<34?2000:b<50?800:400;addScore(pts,goalE.x,goalE.y-18);if(pts===5000)sfx('life');}state='clear';stTimer=70;stopMusic();sfx('clear');P.vx=0;P.enter=1;
     for(let i=0;i<24;i++){const a=i/24*6.283;parts.push({x:goalE.x+16,y:goalE.y+30,vx:Math.cos(a)*2,vy:Math.sin(a)*2,t:50,c:['#ffd23f','#ff6ad5','#5affd0','#fff'][i%4],sz:3,g:0});}}
   // boss arena lock
@@ -1229,7 +1235,7 @@ function step(){
     else if(time>0){const d=Math.min(time,3);time-=d;score+=d*50;if(frame%4===0)sfx('tick');}
     else if(sumT<230&&!(sumT>40&&(inp.jp||inp.rp))){sumT++;if(sumT===1)sfx('item');}
     else{
-      if(world<LEVELS.length-1){world++;cpTaken=false;if(world>saved){saved=world;lsSet('world',world);}const pw=P.power;loadLevel(world);P=newPlayer(pw);showIntro();}
+      if(world<LEVELS.length-1){world++;cpTaken=false;if(world>saved){saved=world;lsSet('world',world);}lsSet('last',world);lsSet('lastcp','0');const pw=P.power;loadLevel(world);P=newPlayer(pw);showIntro();}
       else{state='win';menuSel=0;saveBest();sfx('win');}
     }
   }else if(state==='warp'){updWarp();updParts();updPlats();
