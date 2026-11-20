@@ -83,7 +83,7 @@ body.touch #hint{display:none}
 <script>
 'use strict';
 const T=16,ROWS=15,VH=240;
-let VW=320;
+let VW=320,RK=1;
 const cv=document.getElementById('game'),ctx=cv.getContext('2d');
 const $=id=>document.getElementById(id);
 const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
@@ -95,8 +95,9 @@ function resize(){
   document.body.classList.toggle('portrait',portrait);
   const availH=portrait?Math.min(h*0.6,h-250):h;
   VW=Math.round(Math.min(560,Math.max(256,VH*w/availH)));
-  cv.width=VW;cv.height=VH;
-  const s=Math.min(w/VW,availH/VH);
+  const s=Math.min(w/VW,availH/VH),dpr=window.devicePixelRatio||1;
+  RK=Math.max(1,Math.min(isTouch?4:6,Math.ceil(s*dpr-0.05)));
+  cv.width=VW*RK;cv.height=VH*RK;
   cv.style.width=Math.floor(VW*s)+'px';cv.style.height=Math.floor(VH*s)+'px';
   ctx.imageSmoothingEnabled=false;
   const rot=document.getElementById('rot');
@@ -817,7 +818,7 @@ function saveBest(){if(score>best){best=score;lsSet('best',best);}}
 
 /* ============ RENDER ============ */
 const r=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);};
-function txt(s,x,y,c,sz,al,sh){ctx.font=(sz||8)+'px '+FONT;ctx.textAlign=al||'left';ctx.textBaseline='top';if(sh!==false){ctx.fillStyle='#000';ctx.fillText(s,x+1,y+1);}ctx.fillStyle=c||'#fcfcfc';ctx.fillText(s,x,y);}
+function txt(s,x,y,c,sz,al,sh){x=Math.round(x);y=Math.round(y);ctx.font=(sz||8)+'px '+FONT;ctx.textAlign=al||'left';ctx.textBaseline='top';if(sh!==false){ctx.fillStyle='#000';ctx.fillText(s,x+1,y+1);}ctx.fillStyle=c||'#fcfcfc';ctx.fillText(s,x,y);}
 const THEMES={
   sky:{brick:'#c84c0c',mortar:'#000',ground:'#c84c0c',groundL:'#fcbcb0',groundD:'#000',stone:'#c84c0c',stoneL:'#fcbcb0',stoneD:'#000',grass:true},
   dusk:{brick:'#c84c0c',mortar:'#000',ground:'#a0522d',groundL:'#fcbcb0',groundD:'#000',stone:'#c84c0c',stoneL:'#fcbcb0',stoneD:'#000',grass:true},
@@ -1109,8 +1110,8 @@ function drawHUD(){
 }
 function drawMenu(items,cx,y0,boxed){
   menuRects=[];
-  const lh=16,w=Math.max(...items.map(s=>s.length))*8+40,h=items.length*lh+14,x0=Math.round(cx-w/2);
-  if(boxed){r(x0-4,y0-8,w+8,h+8,'#000');r(x0-2,y0-6,w+4,h+4,'#fcfcfc');r(x0,y0-4,w,h,'#000');}
+  const lh=16,w=Math.max(...items.map(s=>s.length))*8+40,h=items.length*lh+2,x0=Math.round(cx-w/2);
+  if(boxed){r(x0-4,y0-8,w+8,h+12,'#000');r(x0-2,y0-6,w+4,h+8,'#fcfcfc');r(x0,y0-4,w,h+4,'#000');}
   items.forEach((s,i)=>{
     const y=y0+i*lh+2;txt(s,x0+26,y);
     menuRects.push({x:x0,y:y-4,w,h:lh,i});
@@ -1119,7 +1120,7 @@ function drawMenu(items,cx,y0,boxed){
 }
 function blackScreen(){r(0,0,VW,VH,'#000');}
 function render(){
-  ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;
+  ctx.setTransform(RK,0,0,RK,0,0);ctx.imageSmoothingEnabled=false;
   if(state==='intro'){
     blackScreen();drawHUD();menuRects=[];
     txt('WORLD '+L.name,VW/2,90,'#fcfcfc',8,'center',false);
@@ -1174,9 +1175,9 @@ function render(){
     txt("ZAKI'S",VW/2,py+14,'#fcbcb0',16,'center');
     txt('ADVENTURE',VW/2,py+38,'#fcfcfc',16,'center');
     ctx.font='bold 13px Tahoma, Arial, sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle='#000';ctx.fillText('مغامرة زكي',VW/2+1,py+66);ctx.fillStyle='#fcd800';ctx.fillText('مغامرة زكي',VW/2,py+65);
-    const mi=menuItems(),my=mi.length>3?140:148;
-    drawMenu(mi,VW/2,my,false);
-    txt('TOP- '+String(best).padStart(6,'0'),VW/2,my+mi.length*16+6,'#fcfcfc',8,'center');
+    const mi=menuItems(),my=mi.length>3?138:146;
+    drawMenu(mi,VW/2,my,true);
+    txt('TOP- '+String(best).padStart(6,'0'),VW/2,my+mi.length*16+18,'#fcfcfc',8,'center');
     drawHeroAt(3*T+8,13*T-14,false,false,1,false,0,false,(frame>>4)&1,false,0,false);
   }else if(state==='paused'){
     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,VW,VH);
