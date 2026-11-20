@@ -546,7 +546,9 @@ const WORLDS=[
  [['night','rush'],['dusk','springs'],['cloud','crumble'],['castle','fire']],
  [['desert','rush'],['water','swim'],['cave','crumble'],['castle','cannons']],
  [['cloud','springs'],['snow','platform'],['night','cannons'],['castle','fire']],
- [['sky','rush'],['cave','fire'],['cloud','crumble'],['castle','fire']]
+ [['sky','rush'],['cave','fire'],['cloud','crumble'],['castle','fire']],
+ [['dusk','tower'],['water','swim'],['snow','cannons'],['castle','fire']],
+ [['night','crumble'],['desert','platform'],['cloud','rush'],['castle','cannons']]
 ];
 const FLAVOR={
  run:{flat:3,gap:2,pillars:2,stairsGap:1,blocks:2,floats:1,lift:1},
@@ -559,9 +561,29 @@ const FLAVOR={
  tower:{tower:3,stairsGap:2,pillars:2,gap:2,blocks:1},
  swim:{reef:1}
 };
-function genLevel(idx,theme,flavor,boss,wn){
-  const r=srand(idx*7919+13),d=Math.min(1,(idx-8)/23),R=(a,b)=>a+Math.floor(r()*(b-a+1)),pick=a=>a[Math.floor(r()*a.length)];
-  const len=Math.round(230+d*150),useBonus=!boss&&theme!=='water'&&idx%2===0;
+for(const k in FLAVOR)if(k!=='swim'){FLAVOR[k].zigzag=1;FLAVOR[k].bridge=1;}
+const TOTAL_LEVELS=40;
+function targetLen(idx){return Math.min(620,Math.round(250+idx*9.5));}
+function extendHandmade(L,i){
+  const main=(L.mainW||L.w)-(L.arena?(L.mainW||L.w)-L.arena:0),extra=targetLen(i)-main+20;
+  if(extra<16)return;
+  const ge=L.ents.find(e=>e.t==='goal');let cut;
+  if(L.arena)cut=L.arena-2;
+  else{const gx=ge.x;cut=-1;for(let c=gx-2;c>gx-60;c--){let ok=true;for(const cc of [c-1,c,c+1]){if(L.g[13][cc]!=='#')ok=false;for(let y=3;y<13;y++)if(L.g[y][cc]!=='.'&&L.g[y][cc]!=='o')ok=false;}if(ok){cut=c;break;}}
+    if(cut<0)cut=gx-1;}
+  const fl=['run','run','platform','fire','crumble','swim','rush','fire'][i];
+  const S=genLevel(i,L.theme,fl,false,1,{section:true,len:extra});const sw=S.w;
+  for(let y=0;y<ROWS;y++){const row=L.g[y];L.g[y]=row.slice(0,cut).concat(S.g[y].slice(0,sw),row.slice(cut));}
+  for(const e of L.ents)if(e.x>=cut)e.x+=sw;
+  for(const e of S.ents)L.ents.push({...e,x:e.x+cut});
+  if(L.warps)for(const w of L.warps){if(w.tx>=cut)w.tx+=sw;if(w.dest.x!=null&&w.dest.x>=cut*T)w.dest.x+=sw*T;if(w.dest.tx!=null&&w.dest.tx>=cut)w.dest.tx+=sw;}
+  if(L.mainW&&L.mainW>=cut)L.mainW+=sw;if(L.arena)L.arena+=sw;if(L.bossWall)L.bossWall+=sw;
+  L.w+=sw;L.time+=Math.round(sw*0.45);
+}
+function genLevel(idx,theme,flavor,boss,wn,opt){
+  opt=opt||{};const sec=!!opt.section;
+  const r=srand(idx*7919+(sec?77:13)),d=Math.max(0,Math.min(1,idx/(TOTAL_LEVELS-1))),R=(a,b)=>a+Math.floor(r()*(b-a+1)),pick=a=>a[Math.floor(r()*a.length)];
+  const len=sec?opt.len:targetLen(idx),useBonus=!sec&&!boss&&theme!=='water'&&idx%2===0;
   const L=mk(len+140,theme,LNAMES[idx]);
   L.gemSpots=[];L.crumbleT=Math.round(28-d*8);L.cannonRate=Math.round(190-d*80);L.time=300+Math.round(len*0.45);
   const lavaPits=theme==='castle',water=theme==='water',maxGap=theme==='snow'?3:Math.min(4,2+Math.round(d*2.4));
@@ -612,6 +634,14 @@ function genLevel(idx,theme,flavor,boss,wn){
       ground(L,x+3+gw,x+9+gw);foe(x+7+gw);spot(x+3+Math.floor(gw/2),6);return x+10+gw;},
     tower(x){const h=R(5,6+Math.round(d));ground(L,x,x+2*h+5);stairs(L,x,h);fill(L,x+h,13-h,4,h,'S');stairs(L,x+h+4,h,-1);
       en(L,pick(['k','a','s']),x+h+1,12-h);spot(x+h+2,13-h-3);coinsRow(x+h,13-h-2,4);return x+2*h+6;},
+    coinArc(x){ground(L,x,x+17);for(let i=0;i<14;i++){const y=Math.round(9-Math.sin(i/13*Math.PI)*4.5);set(L,x+2+i,y,'o');}
+      row(L,x+7,10,r()<0.35?'?U?':'B?B');if(!water&&r()<0.5)foe(x+14);return x+18;},
+    zigzag(x){const steps=R(4,5+Math.round(d));ground(L,x,x+1);const pw=steps*2+3;pit(x+2,x+1+pw);
+      for(let i=0;i<steps;i++){const y=[11,9,7,9,11,8,10][i%7];set(L,x+3+i*2,y,d>0.5&&r()<0.4?'X':'S');set(L,x+3+i*2,y-2,'o');if(i===2)spot(x+3+i*2,y-4);}
+      ground(L,x+2+pw,x+7+pw);return x+8+pw;},
+    bridge(x){const pw=R(9,13+Math.round(d*3));ground(L,x,x+1);pit(x+2,x+1+pw);row(L,x+2,10,'='.repeat(pw));coinsRow(x+3,7,pw-2);
+      en(L,pick(['s','a','h']),x+5,9);if(d>0.35)en(L,'b',x+2+Math.floor(pw*0.7),6);if(d>0.6)en(L,'h',x+pw-2,9);
+      ground(L,x+2+pw,x+7+pw);return x+8+pw;},
     reef(x){ground(L,x,x+15);if(r()<0.25+d*0.2){for(let i=0;i<R(2,3);i++){set(L,x+6+i,13,'.');set(L,x+6+i,14,'.');}}
       const h=R(2,6);fill(L,x+R(2,4),13-h,2,h,'S');if(r()<0.6)fill(L,x+R(9,11),R(3,6),R(2,4),1,'S');
       coinsRow(x+3,R(4,9),R(4,7));const nf=2+Math.round(d*2);for(let i=0;i<nf;i++)en(L,'f',x+4+i*4,R(3,11));
@@ -620,16 +650,19 @@ function genLevel(idx,theme,flavor,boss,wn){
   // weighted chunk list
   const wts=FLAVOR[flavor],names=Object.keys(wts),tot=names.reduce((a,k)=>a+wts[k],0);
   const choose=()=>{let v=r()*tot;for(const k of names){v-=wts[k];if(v<=0)return k;}return names[0];};
-  ground(L,0,13);let x=14,cpDone=false,last='';
-  if(water){ground(L,0,15);x=16;}
+  let x,cpDone=sec,last='',arcDone=false;
+  if(sec){ground(L,0,3);x=4;}else{ground(L,0,13);x=14;if(water){ground(L,0,15);x=16;}}
   while(x<len){
     let k=choose();if(k===last&&r()<0.6)k=choose();last=k;
+    if(water&&(k==='zigzag'||k==='bridge'))k='reef';
+    if(!arcDone&&x>len*0.4){arcDone=true;k='coinArc';}
     if(!cpDone&&x>len*0.5){cpDone=true;ground(L,x,x+5);cp(L,x+2);x+=6;continue;}
     if(useBonus&&warpIn<0&&x>len*0.25&&x<len*0.45&&!water)k='pillars';
     if(useBonus&&warpIn>=0&&warpOut<0&&x>len*0.6)k='pillars';
     x=C[k](x);
   }
-  if(theme==='cave')for(let cx=6;cx<x;cx++)if(L.g[2][cx]==='.')set(L,cx,2,'B');
+  if(theme==='cave')for(let cx=sec?0:6;cx<x;cx++)if(L.g[2][cx]==='.')set(L,cx,2,'B');
+  if(sec){ground(L,x,x+3);L.w=x+4;return L;}
   // ending
   let endX;
   if(boss){
@@ -656,7 +689,7 @@ for(let i=0;i<8;i++)LEVELS[i].ar=['السهول الخضرا','الكهف الع
 WORLDS.forEach((wl,wi)=>wl.forEach(([th,fl],li)=>{
   const idx=LEVELS.length,boss=li===3,wn=wi+3;
   LNAMES.push(wn+'-'+(li+1));
-  LEVELS.push({b:()=>genLevel(idx,th,fl,boss,wn),song:boss?2:SONG_OF[th],n:TH_EN[th]+' '+FL_EN[fl],ar:boss?'قلعة الملك '+['الأول','التاني','التالت','الرابع','الخامس','الأخير'][wi]:TH_AR[th]+' '+FL_AR[fl]});
+  LEVELS.push({b:()=>genLevel(idx,th,fl,boss,wn),song:boss?2:SONG_OF[th],n:TH_EN[th]+' '+FL_EN[fl],ar:boss?'قلعة الملك '+['الأول','التاني','التالت','الرابع','الخامس','السادس','السابع','الأخير'][wi]:TH_AR[th]+' '+FL_AR[fl]});
 }));
 
 
@@ -696,7 +729,7 @@ function newPlayer(power){
   return{x:6*T+2,y:13*T-h,w:12,h,vx:0,vy:0,face:1,onGround:true,power,inv:0,star:0,coy:0,jbuf:0,anim:0,ride:null,combo:0,dvy:0,grow:0,fireT:0,crouch:false,enter:0};
 }
 function loadLevel(i){
-  L=gems(LEVELS[i].b(),GEMS[i]||[]);L.name=LNAMES[i];L.springA={};L.crumble={};L.cannons=[];for(let x=0;x<L.w;x++)for(let y=0;y<ROWS;y++)if(L.g[y][x]==='N')L.cannons.push({tx:x,ty:y,t:60+((x*37)%90)});L.gemList=[];for(let x=0;x<L.w;x++)for(let y=0;y<ROWS;y++)if(L.g[y][x]==='G')L.gemList.push(x+','+y);lvlCoins=0;gemsRun=0;sumT=0;hitStop=0;inBonus=false;warpW=null;ents=[];items=[];parts=[];pops=[];fbs=[];bumps=[];plats=[];bars=[];shots=[];goalE=null;cpE=null;cam=0;camLock=null;boss=null;bossOn=false;bossDeadT=0;multi={};
+  L=gems(LEVELS[i].b(),GEMS[i]||[]);if(i<8)extendHandmade(L,i);L.name=LNAMES[i];L.springA={};L.crumble={};L.cannons=[];for(let x=0;x<L.w;x++)for(let y=0;y<ROWS;y++)if(L.g[y][x]==='N')L.cannons.push({tx:x,ty:y,t:60+((x*37)%90)});L.gemList=[];for(let x=0;x<L.w;x++)for(let y=0;y<ROWS;y++)if(L.g[y][x]==='G')L.gemList.push(x+','+y);lvlCoins=0;gemsRun=0;sumT=0;hitStop=0;inBonus=false;warpW=null;ents=[];items=[];parts=[];pops=[];fbs=[];bumps=[];plats=[];bars=[];shots=[];goalE=null;cpE=null;cam=0;camLock=null;boss=null;bossOn=false;bossDeadT=0;multi={};
   for(const e of L.ents){
     if(e.t.length===1&&'skbafqjh'.includes(e.t)){
       const w=e.t==='j'?12:14,h={b:10,k:13,a:14,f:10,q:14,j:14}[e.t]||12;
