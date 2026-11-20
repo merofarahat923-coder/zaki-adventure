@@ -47,13 +47,14 @@ body.touch.portrait #rot{display:block}
 #touch{position:fixed;inset:0;pointer-events:none;z-index:4;display:none}
 body.touch #touch{display:block}
 #stickZone,#btnZone{position:absolute;pointer-events:auto;touch-action:none}
-#stickZone{left:env(safe-area-inset-left);bottom:0;width:44%;height:72%}
-#btnZone{right:env(safe-area-inset-right);bottom:0;width:44%;height:72%}
+#stickZone{left:0;bottom:0;width:50%;top:56px}
+#btnZone{right:0;bottom:0;width:50%;top:56px}
 body.inmenu #touch{display:none!important}
 #stick{position:absolute;width:calc(112px*var(--bs,1));height:calc(112px*var(--bs,1));transform:translate(-50%,-50%);border-radius:50%;
   background:radial-gradient(circle,rgba(20,30,60,.22),rgba(10,16,40,.3) 68%,rgba(255,255,255,.1));border:2px solid rgba(255,255,255,.45);
   box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:.62;transition:opacity .15s}
-#stick.on{opacity:.9;border-color:rgba(255,255,255,.45)}
+#stick.on{opacity:.9;border-color:rgba(255,255,255,.55)}
+#stick:not(.live){transition:opacity .2s,left .15s,top .15s}
 #stick .ch{position:absolute;left:50%;top:50%;width:9px;height:9px;border-top:2.5px solid rgba(255,255,255,.55);border-left:2.5px solid rgba(255,255,255,.55);border-radius:2px;transition:border-color .08s}
 #stick .ch.u{transform:translate(-50%,-50%) translateY(calc(-40px*var(--bs,1))) rotate(45deg)}
 #stick .ch.d{transform:translate(-50%,-50%) translateY(calc(40px*var(--bs,1))) rotate(225deg)}
@@ -288,13 +289,16 @@ function updTouches(e){
   const zr=stickZone.getBoundingClientRect(),b=bsz(),R=56*b;
   if(e.type==='touchstart')for(const t of e.changedTouches){
     if(stickId===null&&inRect(zr,t)){stickId=t.identifier;
-      const x=Math.max(R,Math.min(zr.width-R,t.clientX-zr.left)),y=Math.max(R,Math.min(zr.height-R,t.clientY-zr.top));
-      stickO={x:zr.left+x,y:zr.top+y};stickEl.style.left=x+'px';stickEl.style.top=y+'px';}
+      const x=t.clientX-zr.left,y=t.clientY-zr.top;
+      stickO={x:t.clientX,y:t.clientY};stickEl.style.left=x+'px';stickEl.style.top=y+'px';stickEl.classList.add('live');}
   }
   let st=null;for(const t of e.touches)if(t.identifier===stickId)st=t;
-  if(stickId!==null&&!st){stickId=null;stickEl.style.left=stickHome.x+'px';stickEl.style.top=stickHome.y+'px';}
+  if(stickId!==null&&!st){stickId=null;stickEl.classList.remove('live');stickEl.style.left=stickHome.x+'px';stickEl.style.top=stickHome.y+'px';}
   let kx=0,ky=0;
-  if(st){const dx=st.clientX-stickO.x,dy=st.clientY-stickO.y,d=Math.hypot(dx,dy),m=Math.min(d,R*0.62);
+  if(st){let dx=st.clientX-stickO.x,dy=st.clientY-stickO.y,d=Math.hypot(dx,dy);
+    const lim=R*0.75;if(d>lim){const k=(d-lim)/d;stickO.x+=dx*k;stickO.y+=dy*k;dx=st.clientX-stickO.x;dy=st.clientY-stickO.y;d=lim;
+      stickEl.style.left=(stickO.x-zr.left)+'px';stickEl.style.top=(stickO.y-zr.top)+'px';}
+    const m=Math.min(d,R*0.62);
     if(d>0){kx=dx/d*m;ky=dy/d*m;}
     if(dx<-R*0.26)s.left=1;if(dx>R*0.26)s.right=1;
     if(dy>R*0.42&&dy>Math.abs(dx)*0.75)s.down=1;if(dy<-R*0.42&&-dy>Math.abs(dx)*0.75)s.up=1;}
