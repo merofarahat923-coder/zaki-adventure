@@ -1614,7 +1614,7 @@ const BGDEF={
   dusk:[[0.08,g=>lMountains(g,5,200,60,120,'#7a4c8a','#b8668a')],[0.14,g=>lClouds(g,9,5,40,100,'#ffd0c0',0.75)],[0.3,g=>lHills(g,222,55,2,'#5a3e6a','#3a2448','rgba(255,170,150,.5)')],[0.55,g=>lTrees(g,13,224,10,'round','#3a2a3e','#22182a')]],
   night:[[0.06,g=>lMountains(g,4,200,70,120,'#1c2c5a','#132042')],[0.3,g=>lHills(g,222,55,3,'#12382a','#081a12','rgba(120,200,255,.25)')],[0.55,g=>lTrees(g,17,226,12,'pine','#0c2a1a','#061208')]],
   snow:[[0.08,g=>lMountains(g,6,200,70,125,'#9cbcdc','#c8dcf0',true)],[0.14,g=>lClouds(g,19,5,30,80,'#ffffff',0.85)],[0.3,g=>lHills(g,222,52,4,'#f4faff','#bcd6ee','rgba(255,255,255,.9)')],[0.55,g=>lTrees(g,23,224,11,'pine','#2e6a5a','#173a30',true)]],
-  cave:[[0.12,g=>lCave(g,2,'#141a36',false)],[0.32,g=>lCave(g,8,'#1c2448',true)]],
+  cave:[[0.12,g=>lCave(g,2,'#10152c',false)],[0.32,g=>lCave(g,8,'#161c38',false)]],
   castle:[[0.08,g=>lMountains(g,8,205,60,110,'#2a0812','#3e0c14')],[0.25,g=>lCastles(g,12,215,'#1a0408')],[0.5,g=>lHills(g,236,24,5,'#14030a','#0a0105')]],
   water:[[0.1,g=>lSea(g,4,'#0a3e78',false)],[0.3,g=>lSea(g,6,'#0b4f6e',false)],[0.55,g=>lSea(g,9,'#0e8a5a',true)]]
 };
@@ -1637,6 +1637,7 @@ function bgHD(){
     let off=-((cam*f)%LW);if(off>0)off-=LW;
     for(let x=off;x<VW;x+=LW)ctx.drawImage(c,x,0,LW,VH);
   }
+  if(th==='cave'||th==='castle'){ctx.fillStyle='rgba(4,6,16,.28)';ctx.fillRect(0,0,VW,VH);}
   if(th==='water'){
     ctx.save();ctx.globalCompositeOperation='lighter';
     for(let i=0;i<6;i++){const x=((i*110-cam*0.2+Math.sin(t*0.01+i)*20)%(VW+200)+VW+200)%(VW+200)-100;ctx.fillStyle='rgba(160,220,255,.06)';ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+30,0);ctx.lineTo(x+90,VH);ctx.lineTo(x+40,VH);ctx.fill();}
@@ -1651,7 +1652,7 @@ function ambientHD(){
   if(th==='night'){for(let i=0;i<10;i++){if(((t>>3)+i*5)%13<9){const x=((i*131-cam*0.85+Math.sin(t*0.02+i)*24)%VW+VW)%VW,y=110+((i*41)%80)+Math.sin(t*0.03+i)*10;glow(x,y,6,'rgba(220,255,120,1)',0.8);}}}
   if(th==='castle'){for(let i=0;i<22;i++){const x=((i*83-cam*0.7+Math.sin(t*0.03+i)*10)%VW+VW)%VW,y=VH-((t*(0.5+(i%4)*0.2)+i*37)%VH);glow(x,y,3,FIRE,0.7);}}
   if(th==='water'){ctx.strokeStyle='rgba(200,240,255,.6)';ctx.lineWidth=0.6;for(let i=0;i<18;i++){const x=((i*97-cam*0.7)%VW+VW)%VW+Math.sin(t*0.05+i)*3,y=VH-((t*0.5+i*37)%VH),s=0.8+(i%3)*0.6;ctx.beginPath();ctx.arc(x,y,s,0,7);ctx.stroke();}}
-  if(th==='cave'){for(let i=0;i<14;i++){const x=((i*89-cam*0.4)%VW+VW)%VW,y=(i*61+Math.sin(t*0.01+i)*10)%VH;glow(x,y,2.5,BLUE,0.25+0.2*Math.sin(t*0.05+i));}}
+  if(th==='cave'){for(let i=0;i<14;i++){const x=((i*89-cam*0.4)%VW+VW)%VW,y=(i*61+Math.sin(t*0.01+i)*10)%VH;glow(x,y,1.8,BLUE,0.12+0.08*Math.sin(t*0.05+i));}}
   if(th==='sky'||th==='dusk'){for(let i=0;i<8;i++){const x=((i*157-cam*0.9+t*0.2)%VW+VW)%VW,y=60+((i*71)%140)+Math.sin(t*0.02+i)*8;ctx.fillStyle='rgba(255,255,230,.5)';ctx.fillRect(x,y,1,1);}}
 }
 
