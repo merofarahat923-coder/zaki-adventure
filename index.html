@@ -756,6 +756,12 @@ function loadLevel(i){
   }
   time=L.time;tAcc=0;hurryDone=false;musicFast=1;
 }
+function safeSpawn(){
+  const x0=P.x-3*T,x1=P.x+14*T;
+  ents=ents.filter(e=>e.t==='boss'||e.t==='j'||!(e.x+e.w>x0&&e.x<x1));
+  if(L.cannons)for(const c of L.cannons)if(c.tx*T>x0-4*T&&c.tx*T<x1+6*T)c.t=240;
+  P.inv=180;
+}
 function placeAtCP(){if(cpTaken&&cpE){P.x=cpE.x+4;P.y=cpE.y+48-P.h;cam=Math.max(0,Math.min(P.x-VW*0.35,L.w*T-VW));}}
 function newGame(w){
   initAudio();score=0;coins=0;lives=3;world=w;cpTaken=false;
@@ -1158,7 +1164,7 @@ function step(){
     if(stTimer<=0){
       lives--;
       if(lives<=0){state='over';menuSel=0;sfx('over');saveBest();}
-      else{loadLevel(world);P=newPlayer(0);placeAtCP();showIntro();}
+      else{loadLevel(world);P=newPlayer(0);placeAtCP();safeSpawn();showIntro();}
     }
   }else if(state==='clear'){
     updParts();updBars();updPlats();
