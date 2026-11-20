@@ -54,7 +54,8 @@ body.inmenu #touch{display:none!important}
   background:radial-gradient(circle,rgba(20,30,60,.22),rgba(10,16,40,.3) 68%,rgba(255,255,255,.1));border:2px solid rgba(255,255,255,.45);
   box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:.62;transition:opacity .15s}
 #stick.on{opacity:.9;border-color:rgba(255,255,255,.55)}
-#stick:not(.live){transition:opacity .2s,left .15s,top .15s}
+#stick:not(.live){opacity:0!important;transition:opacity .15s}
+#stick.live{opacity:.9!important;transition:none}
 #stick .ch{position:absolute;left:50%;top:50%;width:9px;height:9px;border-top:2.5px solid rgba(255,255,255,.55);border-left:2.5px solid rgba(255,255,255,.55);border-radius:2px;transition:border-color .08s}
 #stick .ch.u{transform:translate(-50%,-50%) translateY(calc(-40px*var(--bs,1))) rotate(45deg)}
 #stick .ch.d{transform:translate(-50%,-50%) translateY(calc(40px*var(--bs,1))) rotate(225deg)}
@@ -72,7 +73,7 @@ body.inmenu #touch{display:none!important}
 #gB{display:none}
 #gB.show{display:flex;animation:firein .25s ease-out}
 @keyframes firein{from{transform:translate(-50%,-50%) scale(.4);opacity:0}to{transform:translate(-50%,-50%) scale(1)}}
-.gbtn.b{width:calc(66px*var(--bs,1));height:calc(76px*var(--bs,1));background:radial-gradient(circle at 35% 28%,rgba(255,200,120,.45),rgba(200,60,20,.35) 64%,rgba(120,20,10,.4))!important;border-color:rgba(255,190,120,.7)!important}
+.gbtn.b{width:calc(68px*var(--bs,1));height:calc(68px*var(--bs,1));background:radial-gradient(circle at 35% 28%,rgba(255,200,120,.45),rgba(200,60,20,.35) 64%,rgba(120,20,10,.4))!important;border-color:rgba(255,190,120,.7)!important}
 .gbtn.on{transform:translate(-50%,-50%) scale(.9);opacity:.95}
 .gbtn.a.on{background:radial-gradient(circle at 35% 28%,rgba(255,226,140,.85),rgba(255,150,40,.55) 70%);border-color:#ffd27a;box-shadow:0 0 26px rgba(255,170,60,.65)}
 .gbtn.b.on{transform:translate(-50%,-50%) scale(.9);background:radial-gradient(circle at 35% 28%,rgba(255,236,160,.95),rgba(255,120,30,.7) 70%)!important;border-color:#ffd27a!important;box-shadow:0 0 28px rgba(255,140,40,.75)}
